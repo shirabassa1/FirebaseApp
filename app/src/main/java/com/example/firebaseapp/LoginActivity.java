@@ -3,6 +3,7 @@ package com.example.firebaseapp;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -19,11 +20,13 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException;
+import com.google.firebase.auth.FirebaseUser;
 
 public class LoginActivity extends AppCompatActivity
 {
     private EditText etEmail, etPass;
     private Button btnLoginSign;
+    private String email, pass;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -51,8 +54,8 @@ public class LoginActivity extends AppCompatActivity
             @Override
             public void onClick(View view)
             {
-                String email = etEmail.getText().toString();
-                String pass = etPass.getText().toString();
+                email = etEmail.getText().toString();
+                pass = etPass.getText().toString();
 
                 createUser(email, pass);
             }
@@ -68,12 +71,15 @@ public class LoginActivity extends AppCompatActivity
 
     private void checkCurrentUser()
     {
-        if (refAuth.getCurrentUser() != null)
+        FirebaseUser user = refAuth.getCurrentUser();
+
+        if (user != null)
         {
-            refAuth.getCurrentUser().reload().addOnCompleteListener(task ->
+            user.reload().addOnCompleteListener(task ->
             {
                 if (task.isSuccessful())
                 {
+                    email = user.getEmail();
                     finishLogin();
                 }
                 else
@@ -183,6 +189,7 @@ public class LoginActivity extends AppCompatActivity
     private void finishLogin()
     {
         Intent intent = new Intent(this, MainActivity.class);
+        intent.putExtra("email", email);
         startActivity(intent);
         finish();
     }
