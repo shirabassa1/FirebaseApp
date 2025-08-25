@@ -7,6 +7,8 @@ public class User
     private int age;
     private String keyID;
 
+    public User() {}
+
     public User (String email, String nickname, int age)
     {
         this.email = email;
