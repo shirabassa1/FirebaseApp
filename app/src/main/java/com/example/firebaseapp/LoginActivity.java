@@ -3,11 +3,13 @@ package com.example.firebaseapp;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
+
 import static com.example.firebaseapp.FBHandler.refAuth;
+import static com.example.firebaseapp.FBHandler.refUsers;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,12 +23,19 @@ import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
 
 public class LoginActivity extends AppCompatActivity
 {
-    private EditText etEmail, etPass;
-    private Button btnLoginSign;
+    private TextView txtKey;
+    private EditText etEmail, etPass, etValue;
+    private Button btnLoginSign, btnSetInfo;
     private String email, pass;
+    User currUser;
+    private final String[] FIELDS = {"nickname", "age"};
+    private int currFieldInd = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -43,6 +52,15 @@ public class LoginActivity extends AppCompatActivity
         etEmail = findViewById(R.id.etEmail);
         etPass = findViewById(R.id.etPass);
         btnLoginSign = findViewById(R.id.btnLoginSign);
+
+        txtKey = findViewById(R.id.txtKey);
+        etValue = findViewById(R.id.etValue);
+        btnSetInfo = findViewById(R.id.btnSetInfo);
+
+        btnSetInfo.setEnabled(false);
+        btnSetInfo.setVisibility(View.GONE);
+        etValue.setVisibility(View.GONE);
+        txtKey.setVisibility(View.GONE);
 
         createButton();
     }
@@ -73,16 +91,34 @@ public class LoginActivity extends AppCompatActivity
     {
         FirebaseUser user = refAuth.getCurrentUser();
 
-        if (user != null)
+        if (user != null) // Already signed in this phone
         {
             user.reload().addOnCompleteListener(task ->
             {
                 if (task.isSuccessful())
                 {
                     email = user.getEmail();
-                    finishLogin();
+
+                    refUsers.child(user.getUid()).addListenerForSingleValueEvent(new ValueEventListener()
+                    {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot)
+                        {
+                            if (snapshot.exists()) // User exists in the db too
+                            {
+                                finishActivity();
+                            }
+                            else // User doesn't appear in the db - create one
+                            {
+                                finishLogin();
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {}
+                    });
                 }
-                else
+                else //Signed in but user not exists anymore
                 {
                     refAuth.signOut();
                     activateButton();
@@ -132,7 +168,7 @@ public class LoginActivity extends AppCompatActivity
                             }
                             else if (exc instanceof FirebaseAuthInvalidCredentialsException)
                             {
-                                etPass.setError("Wrong password");
+                                etPass.setError("Invalid email or password");
                             }
                             else if (exc instanceof FirebaseNetworkException)
                             {
@@ -159,7 +195,24 @@ public class LoginActivity extends AppCompatActivity
                     {
                         if (task.isSuccessful())
                         {
-                            finishLogin();
+                            refUsers.child(refAuth.getCurrentUser().getUid()).get().addOnCompleteListener(taskDB ->
+                            {
+                                if (taskDB.isSuccessful())
+                                {
+                                    if (taskDB.getResult().exists()) // User exists in the db too
+                                    {
+                                        finishActivity();
+                                    }
+                                    else // User doesn't appear in the db - create one
+                                    {
+                                        finishLogin();
+                                    }
+                                }
+                                else
+                                {
+                                    txtKey.setError("FB Error: " + taskDB.getException().getMessage());
+                                }
+                            });
                         }
                         else
                         {
@@ -188,8 +241,95 @@ public class LoginActivity extends AppCompatActivity
 
     private void finishLogin()
     {
+        String uid = refAuth.getCurrentUser().getUid();
+        currUser = new User(email);
+        currUser.setUid(uid);
+
+        btnLoginSign.setEnabled(true);
+        btnLoginSign.setVisibility(View.GONE);
+        etEmail.setVisibility(View.GONE);
+        etPass.setVisibility(View.GONE);
+
+        btnSetInfo.setEnabled(true);
+        btnSetInfo.setVisibility(View.VISIBLE);
+        etValue.setVisibility(View.VISIBLE);
+        txtKey.setVisibility(View.VISIBLE);
+
+        getInfo();
+    }
+
+    private void getInfo()
+    {
+        if (currFieldInd >= FIELDS.length)
+        {
+            txtKey.setText("");
+            etValue.setText("");
+            btnSetInfo.setEnabled(false);
+            refUsers.child(currUser.getUid()).setValue(currUser);
+
+            finishActivity();
+            return;
+        }
+
+        String key = FIELDS[currFieldInd];
+
+        txtKey.setText(key);
+        etValue.setText("");
+
+        btnSetInfo.setOnClickListener(view ->
+        {
+            String enteredValue = etValue.getText().toString().trim();
+
+            if (!enteredValue.isEmpty())
+            {
+                try
+                {
+                    java.lang.reflect.Field field = currUser.getClass().getDeclaredField(key);
+                    field.setAccessible(true);
+                    Class<?> fieldType = field.getType();
+                    Object value;
+
+                    if (fieldType == String.class)
+                    {
+                        value = enteredValue;
+                    }
+                    else if (fieldType == int.class || fieldType == Integer.class)
+                    {
+                        value = Integer.parseInt(enteredValue);
+                    }
+                    else if (fieldType == double.class || fieldType == Double.class)
+                    {
+                        value = Double.parseDouble(enteredValue);
+                    }
+                    else if (fieldType == boolean.class || fieldType == Boolean.class)
+                    {
+                        value = Boolean.parseBoolean(enteredValue);
+                    }
+                    else
+                    {
+                        etValue.setError("Unsupported field type");
+                        return;
+                    }
+
+                    field.set(currUser, value);
+                    currFieldInd++;
+                    getInfo();
+                }
+                catch (NoSuchFieldException | IllegalAccessException e)
+                {
+                    txtKey.setError("Field not found in User class");
+                }
+                catch (NumberFormatException e)
+                {
+                    etValue.setError("Invalid input for the field type");
+                }
+            }
+        });
+    }
+
+    private void finishActivity()
+    {
         Intent intent = new Intent(this, MainActivity.class);
-        intent.putExtra("email", email);
         startActivity(intent);
         finish();
     }

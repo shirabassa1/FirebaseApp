@@ -27,4 +27,30 @@
         android:text="Login/Sign Up"
         android:id="@+id/btnLoginSign"/>
 
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/txtKey"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Key"/>
+
+        <EditText
+            android:id="@+id/etValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="Value"/>
+
+        <Button
+            android:id="@+id/btnSetInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Set Info"/>
+
+    </LinearLayout>
+
 </LinearLayout>

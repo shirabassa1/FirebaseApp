@@ -5,7 +5,7 @@ public class User
     private String email;
     private String nickname;
     private int age;
-    private String keyID;
+    private String Uid;
 
     public User() {}
 
@@ -19,8 +19,6 @@ public class User
     public User (String email)
     {
         this.email = email;
-        this.nickname = "";
-        this.age = 0;
     }
 
     public String getEmail() {
@@ -47,11 +45,11 @@ public class User
         this.age = age;
     }
 
-    public String getKeyID() {
-        return keyID;
+    public String getUid() {
+        return Uid;
     }
 
-    public void setKeyID(String keyID) {
-        this.keyID = keyID;
+    public void setUid(String Uid) {
+        this.Uid = Uid;
     }
 }
