@@ -40,22 +40,41 @@ public class ShoppingListAdapter extends BaseAdapter
         return i;
     }
 
+    static class ViewHolder {
+        TextView txtName;
+        TextView txtQuantity;
+        TextView txtPrice;
+        TextView txtBought;
+    }
+
     @Override
-    public View getView(int i, View view, ViewGroup viewGroup)
+    public View getView(int position, View convertView, ViewGroup parent)
     {
-        view = inflater.inflate(R.layout.shopping_list_lv, viewGroup, false);
+        ViewHolder holder;
 
-        TextView txtName = (TextView) view.findViewById(R.id.listTxtName),
-                txtQuantity = (TextView) view.findViewById(R.id.listTxtQuantity),
-                txtPrice = (TextView) view.findViewById(R.id.listTxtPrice),
-                txtBought = (TextView) view.findViewById(R.id.listTxtBought);
-        Item item = list.get(i);
+        if (convertView == null)
+        {
+            convertView = inflater.inflate(R.layout.shopping_list_lv, parent, false);
 
-        txtName.setText(item.getName());
-        txtQuantity.setText(String.valueOf(item.getQuantity()));
-        txtPrice.setText(String.valueOf(item.getPrice()));
-        txtBought.setText(String.valueOf(item.isBought()));
+            holder = new ViewHolder();
+            holder.txtName = convertView.findViewById(R.id.listTxtName);
+            holder.txtQuantity = convertView.findViewById(R.id.listTxtQuantity);
+            holder.txtPrice = convertView.findViewById(R.id.listTxtPrice);
+            holder.txtBought = convertView.findViewById(R.id.listTxtBought);
 
-        return view;
+            convertView.setTag(holder);
+        }
+        else
+        {
+            holder = (ViewHolder) convertView.getTag();
+        }
+
+        Item item = list.get(position);
+        holder.txtName.setText(item.getName());
+        holder.txtQuantity.setText(String.valueOf(item.getQuantity()));
+        holder.txtPrice.setText(String.valueOf(item.getPrice()));
+        holder.txtBought.setText(String.valueOf(item.isBought()));
+
+        return convertView;
     }
 }
