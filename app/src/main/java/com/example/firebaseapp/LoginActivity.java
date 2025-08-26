@@ -8,8 +8,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import static com.example.firebaseapp.FBHandler.refAuth;
-import static com.example.firebaseapp.FBHandler.refUsers;
+import static com.example.firebaseapp.FBRefs.refAuth;
+import static com.example.firebaseapp.FBRefs.refUsers;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -330,6 +330,7 @@ public class LoginActivity extends AppCompatActivity
     private void finishActivity()
     {
         Intent intent = new Intent(this, MainActivity.class);
+        intent.putExtra("userID", refAuth.getCurrentUser().getUid());
         startActivity(intent);
         finish();
     }

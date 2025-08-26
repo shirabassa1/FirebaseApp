@@ -10,7 +10,7 @@
     android:gravity="center">
 
     <ListView
-        android:id="@+id/lwInfo"
+        android:id="@+id/lvInfo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 
