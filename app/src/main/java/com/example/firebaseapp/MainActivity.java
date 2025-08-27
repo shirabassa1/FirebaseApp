@@ -1,6 +1,7 @@
 package com.example.firebaseapp;
 
 import android.os.Bundle;
+import android.renderscript.Sampler;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -31,6 +32,8 @@ public class MainActivity extends AppCompatActivity
     private final String[] FIELDS = {"name", "quantity", "price", "bought"};
     private int currFieldInd = 0;
     private ArrayList<Item> currUserData = new ArrayList<>();
+    private ValueEventListener usersDataListener;
+    private ShoppingListAdapter adp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -80,6 +83,17 @@ public class MainActivity extends AppCompatActivity
                 addItem();
             }
         });
+    }
+
+    @Override
+    protected void onPause()
+    {
+        super.onPause();
+
+        if (usersDataListener != null)
+        {
+            refUsersData.removeEventListener(usersDataListener);
+        }
     }
 
     private void getUser()
@@ -136,7 +150,7 @@ public class MainActivity extends AppCompatActivity
                     refUsersData.child(currUser.getUid()).child(currUserData.get(0).getName()).setValue(currUserData.get(0));
                 }
 
-                ShoppingListAdapter adp = new ShoppingListAdapter(MainActivity.this, currUserData);
+                adp = new ShoppingListAdapter(MainActivity.this, currUserData);
                 lvInfo.setAdapter(adp);
             }
 
@@ -160,6 +174,7 @@ public class MainActivity extends AppCompatActivity
             txtKey.setVisibility(View.GONE);
 
             currUserData.add(currItem);
+            adp.notifyDataSetChanged();
             refUsersData.child(currUser.getUid()).child(currItem.getName()).setValue(currItem);
 
             currFieldInd = 0;
@@ -173,52 +188,75 @@ public class MainActivity extends AppCompatActivity
 
         btnSet.setOnClickListener(view ->
         {
-            String enteredValue = etValue.getText().toString().trim();
+            clickingSetAction(key);
+        });
 
-            if (!enteredValue.isEmpty())
+        etValue.setOnEditorActionListener((v, actionId, event) ->
+        {
+            clickingSetAction(key);
+            return true;
+        });
+    }
+
+    private void clickingSetAction(String key)
+    {
+        String enteredValue = etValue.getText().toString().trim();
+
+        if (!enteredValue.isEmpty())
+        {
+            try
             {
-                try
-                {
-                    java.lang.reflect.Field field = currItem.getClass().getDeclaredField(key);
-                    field.setAccessible(true);
-                    Class<?> fieldType = field.getType();
-                    Object value;
+                java.lang.reflect.Field field = currItem.getClass().getDeclaredField(key);
+                field.setAccessible(true);
+                Class<?> fieldType = field.getType();
+                Object value;
 
-                    if (fieldType == String.class)
+                if (fieldType == String.class)
+                {
+                    value = enteredValue;
+                }
+                else if (fieldType == int.class || fieldType == Integer.class)
+                {
+                    value = Integer.parseInt(enteredValue);
+                }
+                else if (fieldType == double.class || fieldType == Double.class)
+                {
+                    value = Double.parseDouble(enteredValue);
+                }
+                else if (fieldType == boolean.class || fieldType == Boolean.class)
+                {
+                    if (enteredValue.equalsIgnoreCase("true") || enteredValue.equalsIgnoreCase("yes") || enteredValue.equals("1"))
                     {
-                        value = enteredValue;
+                        value = true;
                     }
-                    else if (fieldType == int.class || fieldType == Integer.class)
+                    else if (enteredValue.equalsIgnoreCase("false") || enteredValue.equalsIgnoreCase("no") || enteredValue.equals("0"))
                     {
-                        value = Integer.parseInt(enteredValue);
-                    }
-                    else if (fieldType == double.class || fieldType == Double.class)
-                    {
-                        value = Double.parseDouble(enteredValue);
-                    }
-                    else if (fieldType == boolean.class || fieldType == Boolean.class)
-                    {
-                        value = Boolean.parseBoolean(enteredValue);
+                        value = false;
                     }
                     else
                     {
-                        etValue.setError("Unsupported field type");
+                        etValue.setError("Enter true/false, yes/no, or 1/0");
                         return;
                     }
+                }
+                else
+                {
+                    etValue.setError("Unsupported field type");
+                    return;
+                }
 
-                    field.set(currItem, value);
-                    currFieldInd++;
-                    addItem();
-                }
-                catch (NoSuchFieldException | IllegalAccessException e)
-                {
-                    txtKey.setError("Field not found in User class");
-                }
-                catch (NumberFormatException e)
-                {
-                    etValue.setError("Invalid input for the field type");
-                }
+                field.set(currItem, value);
+                currFieldInd++;
+                addItem();
             }
-        });
+            catch (NoSuchFieldException | IllegalAccessException e)
+            {
+                txtKey.setError("Field not found in User class");
+            }
+            catch (NumberFormatException e)
+            {
+                etValue.setError("Invalid input for the field type");
+            }
+        }
     }
 }
