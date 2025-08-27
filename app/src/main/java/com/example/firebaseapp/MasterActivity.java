@@ -7,6 +7,9 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import static com.example.firebaseapp.FBRefs.refAuth;
+import static com.example.firebaseapp.FBRefs.refUsers;
+import static com.example.firebaseapp.FBRefs.refUsersData;
 
 public class MasterActivity extends AppCompatActivity
 {
