@@ -1,7 +1,6 @@
 package com.example.firebaseapp;
 
 import android.os.Bundle;
-import android.renderscript.Sampler;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -16,12 +15,11 @@ import static com.example.firebaseapp.FBRefs.refUsersData;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.GenericTypeIndicator;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity
+public class ManageListActivity extends AppCompatActivity
 {
     Button btnAddItem, btnSet;
     TextView txtKey;
@@ -39,7 +37,7 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_manage_list);
 
         init();
     }
@@ -150,7 +148,7 @@ public class MainActivity extends AppCompatActivity
                     refUsersData.child(currUser.getUid()).child(currUserData.get(0).getName()).setValue(currUserData.get(0));
                 }
 
-                adp = new ShoppingListAdapter(MainActivity.this, currUserData);
+                adp = new ShoppingListAdapter(ManageListActivity.this, currUserData);
                 lvInfo.setAdapter(adp);
             }
 

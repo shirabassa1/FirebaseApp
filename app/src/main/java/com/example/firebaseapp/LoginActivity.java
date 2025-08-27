@@ -329,7 +329,7 @@ public class LoginActivity extends AppCompatActivity
 
     private void finishActivity()
     {
-        Intent intent = new Intent(this, MainActivity.class);
+        Intent intent = new Intent(this, ManageListActivity.class);
         intent.putExtra("userID", refAuth.getCurrentUser().getUid());
         startActivity(intent);
         finish();
