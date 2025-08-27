@@ -1,5 +1,6 @@
 package com.example.firebaseapp;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -10,6 +11,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import static com.example.firebaseapp.FBRefs.refAuth;
 import static com.example.firebaseapp.FBRefs.refUsers;
 import static com.example.firebaseapp.FBRefs.refUsersData;
 
@@ -19,7 +21,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
-public class ManageListActivity extends AppCompatActivity
+public class ManageListActivity extends MasterActivity
 {
     Button btnAddItem, btnSet;
     TextView txtKey;
@@ -29,8 +31,8 @@ public class ManageListActivity extends AppCompatActivity
     Item currItem;
     private final String[] FIELDS = {"name", "quantity", "price", "bought"};
     private int currFieldInd = 0;
-    private ArrayList<Item> currUserData = new ArrayList<>();
     private ValueEventListener usersDataListener;
+    private ArrayList<Item> currUserData = new ArrayList<>();
     private ShoppingListAdapter adp;
 
     @Override
@@ -96,7 +98,7 @@ public class ManageListActivity extends AppCompatActivity
 
     private void getUser()
     {
-        String userID = getIntent().getStringExtra("userID");
+        String userID = refAuth.getCurrentUser().getUid();
 
         if (userID == null)
         {

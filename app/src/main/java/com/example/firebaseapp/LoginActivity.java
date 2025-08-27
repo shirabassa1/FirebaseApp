@@ -27,7 +27,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
 
-public class LoginActivity extends AppCompatActivity
+public class LoginActivity extends MasterActivity
 {
     private TextView txtKey;
     private EditText etEmail, etPass, etValue;
@@ -330,7 +330,6 @@ public class LoginActivity extends AppCompatActivity
     private void finishActivity()
     {
         Intent intent = new Intent(this, ManageListActivity.class);
-        intent.putExtra("userID", refAuth.getCurrentUser().getUid());
         startActivity(intent);
         finish();
     }

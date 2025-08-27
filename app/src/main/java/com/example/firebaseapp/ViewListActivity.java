@@ -21,7 +21,7 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-public class ViewListActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener
+public class ViewListActivity extends MasterActivity implements AdapterView.OnItemSelectedListener
 {
     Spinner spinnerFiltering;
     String[] filteringOptions;
@@ -134,7 +134,7 @@ public class ViewListActivity extends AppCompatActivity implements AdapterView.O
 
         for (int i=0; i<currUserData.size(); i++)
         {
-            if (currUserData.get(i).getPrice() < 10)
+            if (currUserData.get(i).getPrice() < 50)
             {
                 dataFilteredLists.get(0).add(currUserData.get(i));
             }
