@@ -1,28 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="200px"
     android:orientation="horizontal"
-    android:gravity="start">
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="8dp">
 
     <TextView
-        android:layout_width="wrap_content"
+        android:id="@+id/listTxtName"
+        android:layout_weight="1"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:id="@+id/listTxtName" />
-
+        android:textSize="15dp"/>
     <TextView
-        android:layout_width="wrap_content"
+        android:id="@+id/listTxtQuantity"
+        android:layout_weight="1"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:id="@+id/listTxtQuantity" />
-
+        android:textSize="15dp"/>
     <TextView
-        android:layout_width="wrap_content"
+        android:id="@+id/listTxtPrice"
+        android:layout_weight="1"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:id="@+id/listTxtPrice"/>
-
+        android:textSize="15dp"/>
     <TextView
-        android:layout_width="wrap_content"
+        android:id="@+id/listTxtBought"
+        android:layout_weight="1"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:id="@+id/listTxtBought"/>
-
+        android:textSize="18dp"/>
 </LinearLayout>

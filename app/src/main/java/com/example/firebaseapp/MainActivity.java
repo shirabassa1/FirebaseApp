@@ -1,7 +1,11 @@
 package com.example.firebaseapp;
 
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,8 +22,14 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity
 {
+    Button btnAddItem, btnSet;
+    TextView txtKey;
+    EditText etValue;
     private ListView lvInfo;
     private User currUser;
+    Item currItem;
+    private final String[] FIELDS = {"name", "quantity", "price", "bought"};
+    private int currFieldInd = 0;
     private ArrayList<Item> currUserData = new ArrayList<>();
 
     @Override
@@ -33,10 +43,46 @@ public class MainActivity extends AppCompatActivity
 
     private void init()
     {
-        getUserData();
+        btnAddItem = findViewById(R.id.btnAddItem);
+        txtKey = findViewById(R.id.txtKey);
+        etValue = findViewById(R.id.etValue);
+        btnSet = findViewById(R.id.btnSet);
+
+        createButtons();
+
+        btnSet.setEnabled(false);
+        btnAddItem.setVisibility(View.VISIBLE);
+        btnSet.setVisibility(View.GONE);
+        etValue.setVisibility(View.GONE);
+        txtKey.setVisibility(View.GONE);
+
+        getUser();
     }
 
-    private void getUserData()
+    private void createButtons()
+    {
+        btnAddItem.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                txtKey.setText("");
+                etValue.setText("");
+                btnAddItem.setEnabled(false);
+                btnSet.setEnabled(true);
+
+                btnAddItem.setVisibility(View.GONE);
+                btnSet.setVisibility(View.VISIBLE);
+                etValue.setVisibility(View.VISIBLE);
+                txtKey.setVisibility(View.VISIBLE);
+
+                currItem = new Item();
+                addItem();
+            }
+        });
+    }
+
+    private void getUser()
     {
         String userID = getIntent().getStringExtra("userID");
 
@@ -96,6 +142,83 @@ public class MainActivity extends AppCompatActivity
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
+
+    private void addItem()
+    {
+        if (currFieldInd >= FIELDS.length)
+        {
+            txtKey.setText("");
+            etValue.setText("");
+            btnSet.setEnabled(false);
+            btnAddItem.setEnabled(true);
+
+            btnAddItem.setVisibility(View.VISIBLE);
+            btnSet.setVisibility(View.GONE);
+            etValue.setVisibility(View.GONE);
+            txtKey.setVisibility(View.GONE);
+
+            currUserData.add(currItem);
+            refUsersData.child(currUser.getUid()).child(currItem.getName()).setValue(currItem);
+
+            currFieldInd = 0;
+            return;
+        }
+
+        String key = FIELDS[currFieldInd];
+
+        txtKey.setText(key);
+        etValue.setText("");
+
+        btnSet.setOnClickListener(view ->
+        {
+            String enteredValue = etValue.getText().toString().trim();
+
+            if (!enteredValue.isEmpty())
+            {
+                try
+                {
+                    java.lang.reflect.Field field = currItem.getClass().getDeclaredField(key);
+                    field.setAccessible(true);
+                    Class<?> fieldType = field.getType();
+                    Object value;
+
+                    if (fieldType == String.class)
+                    {
+                        value = enteredValue;
+                    }
+                    else if (fieldType == int.class || fieldType == Integer.class)
+                    {
+                        value = Integer.parseInt(enteredValue);
+                    }
+                    else if (fieldType == double.class || fieldType == Double.class)
+                    {
+                        value = Double.parseDouble(enteredValue);
+                    }
+                    else if (fieldType == boolean.class || fieldType == Boolean.class)
+                    {
+                        value = Boolean.parseBoolean(enteredValue);
+                    }
+                    else
+                    {
+                        etValue.setError("Unsupported field type");
+                        return;
+                    }
+
+                    field.set(currItem, value);
+                    currFieldInd++;
+                    addItem();
+                }
+                catch (NoSuchFieldException | IllegalAccessException e)
+                {
+                    txtKey.setError("Field not found in User class");
+                }
+                catch (NumberFormatException e)
+                {
+                    etValue.setError("Invalid input for the field type");
+                }
+            }
         });
     }
 }
