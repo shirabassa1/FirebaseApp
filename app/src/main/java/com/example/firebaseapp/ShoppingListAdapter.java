@@ -22,6 +22,12 @@ public class ShoppingListAdapter extends BaseAdapter
         inflater = LayoutInflater.from(contex);
     }
 
+    public void updateList(ArrayList<Item> newList)
+    {
+        this.list = newList;
+        notifyDataSetChanged();
+    }
+
     @Override
     public int getCount()
     {

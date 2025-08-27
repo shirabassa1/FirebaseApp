@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.FirebaseApp">
         <activity
+            android:name=".ViewListActivity"
+            android:exported="false" />
+        <activity
             android:name=".ManageListActivity"
             android:exported="false" />
         <activity
