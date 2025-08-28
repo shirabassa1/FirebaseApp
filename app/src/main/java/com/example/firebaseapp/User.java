@@ -1,11 +1,14 @@
 package com.example.firebaseapp;
 
+import android.graphics.Bitmap;
+
 public class User
 {
     private String email;
     private String nickname;
     private int age;
     private String Uid;
+    private Bitmap profilePic;
 
     public User() {}
 
@@ -14,6 +17,27 @@ public class User
         this.email = email;
         this.nickname = nickname;
         this.age = age;
+    }
+
+    public User(String email, String nickname, int age, String uid, Bitmap profilePic) {
+        this.email = email;
+        this.nickname = nickname;
+        this.age = age;
+        this.Uid = uid;
+        this.profilePic = profilePic;
+    }
+
+    public User(String email, String nickname, int age, String uid) {
+        this.email = email;
+        this.nickname = nickname;
+        this.age = age;
+        this.Uid = uid;
+    }
+
+    public User(String email, String uid)
+    {
+        this.email = email;
+        this.Uid = uid;
     }
 
     public User (String email)
@@ -51,5 +75,13 @@ public class User
 
     public void setUid(String Uid) {
         this.Uid = Uid;
+    }
+
+    public Bitmap getProfilePic() {
+        return profilePic;
+    }
+
+    public void setProfilePic(Bitmap profilePic) {
+        this.profilePic = profilePic;
     }
 }

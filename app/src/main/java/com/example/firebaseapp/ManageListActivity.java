@@ -9,10 +9,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-
-import static com.example.firebaseapp.FBRefs.refAuth;
-import static com.example.firebaseapp.FBRefs.refUsers;
 import static com.example.firebaseapp.FBRefs.refUsersData;
 
 import com.google.firebase.database.DataSnapshot;
@@ -27,7 +23,6 @@ public class ManageListActivity extends MasterActivity
     TextView txtKey;
     EditText etValue;
     private ListView lvInfo;
-    private User currUser;
     Item currItem;
     private final String[] FIELDS = {"name", "quantity", "price", "bought"};
     private int currFieldInd = 0;
@@ -59,7 +54,7 @@ public class ManageListActivity extends MasterActivity
         etValue.setVisibility(View.GONE);
         txtKey.setVisibility(View.GONE);
 
-        getUser();
+        createListView();
     }
 
     private void createButtons()
@@ -94,33 +89,6 @@ public class ManageListActivity extends MasterActivity
         {
             refUsersData.removeEventListener(usersDataListener);
         }
-    }
-
-    private void getUser()
-    {
-        String userID = refAuth.getCurrentUser().getUid();
-
-        if (userID == null)
-        {
-            return;
-        }
-
-        refUsers.child(userID).addListenerForSingleValueEvent(new ValueEventListener()
-        {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot)
-            {
-                if (snapshot.exists())
-                {
-                    currUser = snapshot.getValue(User.class);
-
-                    createListView();
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {}
-        });
     }
 
     private void createListView()

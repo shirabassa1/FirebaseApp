@@ -52,7 +52,6 @@ public class LoginActivity extends MasterActivity
     private EditText etEmail, etPass, etValue;
     private Button btnLoginSign, btnSetInfo;
     private String email, pass;
-    User currUser;
     private final String[] FIELDS = {"nickname", "age"};
     private int currFieldInd = 0;
     private static final int REQUEST_PICK_IMAGE = 301;
@@ -126,6 +125,11 @@ public class LoginActivity extends MasterActivity
                         {
                             if (snapshot.exists()) // User exists in the db too
                             {
+                                currUser = new User(email,
+                                        snapshot.child("nickname").getValue(String.class),
+                                        snapshot.child("age").getValue(Integer.class),
+                                        refAuth.getCurrentUser().getUid());
+
                                 userUploadProfileImage(null);
                             }
                             else // User doesn't appear in the db - create one
@@ -219,6 +223,15 @@ public class LoginActivity extends MasterActivity
                             {
                                 if (taskDB.isSuccessful())
                                 {
+                                    DataSnapshot snapshot = taskDB.getResult();
+
+                                    if (snapshot.exists())
+                                    {
+                                        String nickname = snapshot.child("nickname").getValue(String.class);
+                                        Integer age = snapshot.child("age").getValue(Integer.class);
+                                        currUser = new User(email, nickname, age, refAuth.getCurrentUser().getUid());
+                                    }
+
                                     if (taskDB.getResult().exists()) // User exists in the db too
                                     {
                                         userUploadProfileImage(null);
@@ -261,9 +274,7 @@ public class LoginActivity extends MasterActivity
 
     private void finishLogin()
     {
-        String uid = refAuth.getCurrentUser().getUid();
-        currUser = new User(email);
-        currUser.setUid(uid);
+        currUser = new User(email, refAuth.getCurrentUser().getUid());
 
         btnLoginSign.setEnabled(true);
         btnLoginSign.setVisibility(View.GONE);
@@ -364,9 +375,25 @@ public class LoginActivity extends MasterActivity
                             {
                                 byte[] bytes = blob.toBytes();
                                 Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-                            }
 
-                            finishActivity();
+                                String uid = refAuth.getCurrentUser().getUid();
+
+                                refUsers.child(uid).get().addOnCompleteListener(task ->
+                                {
+                                    if (task.isSuccessful())
+                                    {
+                                        DataSnapshot snapshot = task.getResult();
+
+                                        if (snapshot.exists())
+                                        {
+                                            String nickname = snapshot.child("nickname").getValue(String.class);
+                                            updateActionBar(nickname, bitmap);
+                                            currUser.setProfilePic(bitmap);
+                                            finishActivity();
+                                        }
+                                    }
+                                });
+                            }
                         }
                         else
                         {
@@ -412,7 +439,11 @@ public class LoginActivity extends MasterActivity
             try
             {
                 InputStream stream = getContentResolver().openInputStream(imageUri);
+                Bitmap bitmap = BitmapFactory.decodeStream(stream);
+                stream.close();
+                stream = getContentResolver().openInputStream(imageUri);
                 byte[] imageBytes = IOUtils.toByteArray(stream);
+
                 Map<String, Object> imageMap = new HashMap<>();
 
                 imageMap.put("Uid", Uid);
@@ -427,6 +458,7 @@ public class LoginActivity extends MasterActivity
                                 pd.dismiss();
                                 Toast.makeText(LoginActivity.this, "Uploaded seccessfuly",
                                         Toast.LENGTH_SHORT).show();
+                                currUser.setProfilePic(bitmap);
                                 finishActivity();
                             }
                         })
@@ -455,6 +487,7 @@ public class LoginActivity extends MasterActivity
 
     private void finishActivity()
     {
+        FBRefs.setUser(currUser);
         Intent intent = new Intent(this, ManageListActivity.class);
         startActivity(intent);
         finish();

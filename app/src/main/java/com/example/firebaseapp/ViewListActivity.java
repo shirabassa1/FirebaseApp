@@ -1,7 +1,4 @@
 package com.example.firebaseapp;
-
-import static com.example.firebaseapp.FBRefs.refAuth;
-import static com.example.firebaseapp.FBRefs.refUsers;
 import static com.example.firebaseapp.FBRefs.refUsersData;
 
 import android.os.Bundle;
@@ -12,14 +9,12 @@ import android.widget.ListView;
 import android.widget.Spinner;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 
 public class ViewListActivity extends MasterActivity implements AdapterView.OnItemSelectedListener
 {
@@ -28,7 +23,6 @@ public class ViewListActivity extends MasterActivity implements AdapterView.OnIt
     ListView lvInfo;
     private ArrayList<Item> currUserData = new ArrayList<>();
     private ArrayList<ArrayList<Item>> dataFilteredLists;
-    User currUser;
     private ShoppingListAdapter listAdapter;
 
     @Override
@@ -47,34 +41,7 @@ public class ViewListActivity extends MasterActivity implements AdapterView.OnIt
         filteringOptions = getResources().getStringArray(R.array.filteringOptions);
         spinnerFiltering = findViewById(R.id.spinnerFiltering);
 
-        getUser();
-    }
-
-    private void getUser()
-    {
-        String userID = refAuth.getCurrentUser().getUid();
-
-        if (userID == null)
-        {
-            return;
-        }
-
-        refUsers.child(userID).addListenerForSingleValueEvent(new ValueEventListener()
-        {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot)
-            {
-                if (snapshot.exists())
-                {
-                    currUser = snapshot.getValue(User.class);
-
-                    createListView();
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {}
-        });
+        createListView();
     }
 
     private void createListView()
