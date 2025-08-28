@@ -112,11 +112,6 @@ public class ManageListActivity extends MasterActivity
                         }
                     }
                 }
-                else
-                {
-                    currUserData.add(new Item("h", 4, 3, true));
-                    refUsersData.child(currUser.getUid()).child(currUserData.get(0).getName()).setValue(currUserData.get(0));
-                }
 
                 adp = new ShoppingListAdapter(ManageListActivity.this, currUserData);
                 lvInfo.setAdapter(adp);

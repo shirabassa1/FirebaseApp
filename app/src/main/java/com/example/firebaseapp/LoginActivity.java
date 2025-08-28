@@ -298,6 +298,10 @@ public class LoginActivity extends MasterActivity
             btnSetInfo.setEnabled(false);
             refUsers.child(currUser.getUid()).setValue(currUser);
 
+            txtKey.setVisibility(View.GONE);
+            etValue.setVisibility(View.GONE);
+            btnSetInfo.setVisibility(View.GONE);
+
             userUploadProfileImage(null);
             return;
         }

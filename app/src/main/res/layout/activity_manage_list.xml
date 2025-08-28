@@ -16,7 +16,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginTop="20dp">
+        android:layout_marginTop="20dp"
+        android:paddingHorizontal="20dp">
 
         <Button
             android:id="@+id/btnAddItem"
@@ -29,9 +30,8 @@
         <TextView
             android:id="@+id/txtKey"
             android:text="Key"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:textSize="20dp"/>
 
         <EditText
@@ -41,7 +41,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:textSize="20dp"
-            android:singleLine="true"/>
+            android:singleLine="true"
+            android:layout_marginHorizontal="15dp"/>
 
         <Button
             android:id="@+id/btnSet"

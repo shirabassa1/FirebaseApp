@@ -65,11 +65,6 @@ public class ViewListActivity extends MasterActivity implements AdapterView.OnIt
                         }
                     }
                 }
-                else
-                {
-                    currUserData.add(new Item("h", 4, 3, true));
-                    refUsersData.child(currUser.getUid()).child(currUserData.get(0).getName()).setValue(currUserData.get(0));
-                }
 
                 listAdapter = new ShoppingListAdapter(ViewListActivity.this, currUserData);
                 lvInfo.setAdapter(listAdapter);
