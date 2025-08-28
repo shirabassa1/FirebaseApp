@@ -18,5 +18,5 @@ public class FBRefs
 
     // Firestore
     public static FirebaseFirestore FBFS = FirebaseFirestore.getInstance();
-    public static CollectionReference RefImages = FBFS.collection("Images");
+    public static CollectionReference refImages = FBFS.collection("Images");
 }

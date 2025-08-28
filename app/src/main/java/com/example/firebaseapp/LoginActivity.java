@@ -2,19 +2,29 @@ package com.example.firebaseapp;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import static com.example.firebaseapp.FBRefs.refAuth;
 import static com.example.firebaseapp.FBRefs.refUsers;
+import static com.example.firebaseapp.FBRefs.refImages;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.gms.common.util.IOUtils;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseNetworkException;
 import com.google.firebase.auth.AuthResult;
@@ -26,6 +36,15 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.Blob;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class LoginActivity extends MasterActivity
 {
@@ -36,6 +55,7 @@ public class LoginActivity extends MasterActivity
     User currUser;
     private final String[] FIELDS = {"nickname", "age"};
     private int currFieldInd = 0;
+    private static final int REQUEST_PICK_IMAGE = 301;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -106,7 +126,7 @@ public class LoginActivity extends MasterActivity
                         {
                             if (snapshot.exists()) // User exists in the db too
                             {
-                                finishActivity();
+                                userUploadProfileImage(null);
                             }
                             else // User doesn't appear in the db - create one
                             {
@@ -201,7 +221,7 @@ public class LoginActivity extends MasterActivity
                                 {
                                     if (taskDB.getResult().exists()) // User exists in the db too
                                     {
-                                        finishActivity();
+                                        userUploadProfileImage(null);
                                     }
                                     else // User doesn't appear in the db - create one
                                     {
@@ -267,7 +287,7 @@ public class LoginActivity extends MasterActivity
             btnSetInfo.setEnabled(false);
             refUsers.child(currUser.getUid()).setValue(currUser);
 
-            finishActivity();
+            userUploadProfileImage(null);
             return;
         }
 
@@ -325,6 +345,112 @@ public class LoginActivity extends MasterActivity
                 }
             }
         });
+    }
+
+    public void userUploadProfileImage(View view)
+    {
+        DocumentReference imageRef = refImages.document(refAuth.getCurrentUser().getUid());
+
+        imageRef.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>()
+                {
+                    @Override
+                    public void onSuccess(DocumentSnapshot imageSnapshot)
+                    {
+                        if (imageSnapshot.exists())
+                        {
+                            Blob blob = imageSnapshot.getBlob("imageData");
+
+                            if (blob != null)
+                            {
+                                byte[] bytes = blob.toBytes();
+                                Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                            }
+
+                            finishActivity();
+                        }
+                        else
+                        {
+                            Intent intent = new Intent(Intent.ACTION_PICK,
+                                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                            startActivityForResult(intent, REQUEST_PICK_IMAGE);
+                        }
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener()
+                {
+                    @Override
+                    public void onFailure(@NonNull Exception e)
+                    {
+                        Toast.makeText(LoginActivity.this, "Image download failed",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data)
+    {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_PICK_IMAGE && resultCode == RESULT_OK && data != null)
+        {
+            Uri imageUri = data.getData();
+            uploadImage(imageUri);
+        }
+    }
+
+    private void uploadImage(Uri imageUri)
+    {
+        if (imageUri != null)
+        {
+            String Uid = refAuth.getCurrentUser().getUid();
+
+            ProgressDialog pd = new ProgressDialog(this);
+            pd.setTitle("Uploading...");
+            pd.show();
+
+            try
+            {
+                InputStream stream = getContentResolver().openInputStream(imageUri);
+                byte[] imageBytes = IOUtils.toByteArray(stream);
+                Map<String, Object> imageMap = new HashMap<>();
+
+                imageMap.put("Uid", Uid);
+                imageMap.put("imageData", Blob.fromBytes(imageBytes));
+
+                refImages.document(Uid).set(imageMap)
+                        .addOnSuccessListener(new OnSuccessListener<Void>()
+                        {
+                            @Override
+                            public void onSuccess(Void unused)
+                            {
+                                pd.dismiss();
+                                Toast.makeText(LoginActivity.this, "Uploaded seccessfuly",
+                                        Toast.LENGTH_SHORT).show();
+                                finishActivity();
+                            }
+                        })
+
+                        .addOnFailureListener(new OnFailureListener()
+                        {
+                            @Override
+                            public void onFailure(@NonNull Exception e)
+                            {
+                                pd.dismiss();
+                                Toast.makeText(LoginActivity.this, "Upload failed",
+                                        Toast.LENGTH_SHORT).show();
+                                finishActivity();
+                            }
+                        });
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+                pd.dismiss();
+                Toast.makeText(LoginActivity.this, "Error processing image",
+                        Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     private void finishActivity()
